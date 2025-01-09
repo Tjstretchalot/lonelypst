@@ -11,6 +11,7 @@ from lonelypsc.config.ws_config import make_websocket_pub_sub_config
 from lonelypsc.http_client import HttpPubSubClient
 from lonelypsc.ws_client import WebsocketPubSubClient
 from lonelypsc.client import PubSubClient
+import psutil
 
 
 async def _main() -> None:
@@ -63,6 +64,15 @@ async def main(ips: List[str], auth_file_path: str) -> None:
     print("Notifying foo/bar via http")
     async with HttpPubSubClient(http_config_gen(3002)) as client:
         await _try_notify(client, b"foo/bar", 0)
+
+    print("Verifying 3002 is not in use anymore")
+    for conn in psutil.net_connections():
+        if conn.laddr.port != 3002:
+            continue
+
+        print(f"Found connection: {conn}")
+        if conn.status == "LISTEN" or conn.status == "ESTABLISHED":
+            raise Exception(f"Port 3002 still in use!")
 
     print("Notifying foo/bar via ws")
     async with WebsocketPubSubClient(ws_config_gen()) as client:
