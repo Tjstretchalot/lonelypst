@@ -4,47 +4,45 @@ simple tests against them as if by `tarcluster`
 
 import argparse
 import asyncio
-from contextlib import asynccontextmanager
 import json
 import os
 import secrets
 import shutil
 import sys
-from typing import Any, AsyncIterator, Dict, Literal, cast
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Dict, Literal
 
 import uvicorn
 from fastapi import FastAPI
 from lonelypss.bknd.sweep_missed import sweep_missed
-from lonelypsp.util.cancel_and_check import cancel_and_check
-from lonelypss.config.config import (
-    DBConfig,
-    ConfigFromParts,
-    GenericConfigFromValues,
-    MissedRetryStandard,
-    CompressionConfigFromParts,
-)
 from lonelypss.config.auth_config import (
     AuthConfigFromParts,
     IncomingAuthConfig,
     OutgoingAuthConfig,
 )
-
-from lonelypss.middleware.config import ConfigMiddleware
-from lonelypss.middleware.ws_receiver import WSReceiverMiddleware
-from lonelypss.router import router as HttpPubSubRouter
-from lonelypss.config.lifespan import setup_config, teardown_config
-from lonelypss.util.ws_receiver import SimpleFanoutWSReceiver
+from lonelypss.config.config import (
+    CompressionConfigFromParts,
+    ConfigFromParts,
+    DBConfig,
+    GenericConfigFromValues,
+    MissedRetryStandard,
+)
 from lonelypss.config.helpers.hmac_auth_config import (
     IncomingHmacAuth,
     IncomingHmacAuthSqliteDBConfig,
     OutgoingHmacAuth,
 )
 from lonelypss.config.helpers.none_auth_config import IncomingNoneAuth, OutgoingNoneAuth
+from lonelypss.config.helpers.sqlite_db_config import SqliteDBConfig
 from lonelypss.config.helpers.token_auth_config import (
     IncomingTokenAuth,
     OutgoingTokenAuth,
 )
-from lonelypss.config.helpers.sqlite_db_config import SqliteDBConfig
+from lonelypss.config.lifespan import setup_config, teardown_config
+from lonelypss.middleware.config import ConfigMiddleware
+from lonelypss.middleware.ws_receiver import WSReceiverMiddleware
+from lonelypss.router import router as HttpPubSubRouter
+from lonelypss.util.ws_receiver import SimpleFanoutWSReceiver
 
 import lonelypst.tests.tarcluster
 
