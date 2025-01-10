@@ -10,16 +10,31 @@ import secrets
 import shutil
 import sys
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, Literal
+from typing import Any, AsyncIterator, Dict, Literal, Optional
 
 import uvicorn
 from fastapi import FastAPI
-from lonelypss.bknd.sweep_missed import sweep_missed
-from lonelypss.config.auth_config import (
+from lonelypsp.auth.config import (
     AuthConfigFromParts,
-    IncomingAuthConfig,
-    OutgoingAuthConfig,
+    ToBroadcasterAuthConfig,
+    ToSubscriberAuthConfig,
 )
+from lonelypsp.auth.helpers.hmac_auth_config import (
+    IncomingHmacAuthDBConfig,
+    IncomingHmacAuthDBReentrantConfig,
+    IncomingHmacAuthSqliteDBConfig,
+    ToBroadcasterHmacAuth,
+    ToSubscriberHmacAuth,
+)
+from lonelypsp.auth.helpers.none_auth_config import (
+    ToBroadcasterNoneAuth,
+    ToSubscriberNoneAuth,
+)
+from lonelypsp.auth.helpers.token_auth_config import (
+    ToBroadcasterTokenAuth,
+    ToSubscriberTokenAuth,
+)
+from lonelypss.bknd.sweep_missed import sweep_missed
 from lonelypss.config.config import (
     CompressionConfigFromParts,
     ConfigFromParts,
@@ -27,17 +42,7 @@ from lonelypss.config.config import (
     GenericConfigFromValues,
     MissedRetryStandard,
 )
-from lonelypss.config.helpers.hmac_auth_config import (
-    IncomingHmacAuth,
-    IncomingHmacAuthSqliteDBConfig,
-    OutgoingHmacAuth,
-)
-from lonelypss.config.helpers.none_auth_config import IncomingNoneAuth, OutgoingNoneAuth
 from lonelypss.config.helpers.sqlite_db_config import SqliteDBConfig
-from lonelypss.config.helpers.token_auth_config import (
-    IncomingTokenAuth,
-    OutgoingTokenAuth,
-)
 from lonelypss.config.lifespan import setup_config, teardown_config
 from lonelypss.middleware.config import ConfigMiddleware
 from lonelypss.middleware.ws_receiver import WSReceiverMiddleware
@@ -102,50 +107,58 @@ async def main(
         else:
             assert_never(db_strategy)
 
-        subscriber_secrets: Dict[str, Any] = {"version": "1"}
+        serd_secrets: Dict[str, Any] = {"version": "2"}
+        hmac_db: Optional[IncomingHmacAuthDBConfig] = None
 
         s2b_secret = secrets.token_urlsafe(64)
         b2s_secret = secrets.token_urlsafe(64)
 
-        incoming_auth: IncomingAuthConfig
+        to_broadcaster_auth: ToBroadcasterAuthConfig
         if s2b_auth_strategy == "hmac":
-            subscriber_secrets["outgoing"] = {"type": "hmac", "secret": s2b_secret}
+            serd_secrets["to-broadcaster"] = {"type": "hmac", "secret": s2b_secret}
+            hmac_db = IncomingHmacAuthDBReentrantConfig(
+                IncomingHmacAuthSqliteDBConfig(":memory:")
+            )
 
-            incoming_auth = IncomingHmacAuth(
-                subscriber_secret=s2b_secret,
-                broadcaster_secret=b2s_secret,
-                db_config=IncomingHmacAuthSqliteDBConfig(":memory:"),
+            to_broadcaster_auth = ToBroadcasterHmacAuth(
+                secret=s2b_secret,
+                db_config=hmac_db,
             )
         elif s2b_auth_strategy == "token":
-            subscriber_secrets["outgoing"] = {"type": "token", "secret": s2b_secret}
+            serd_secrets["to-broadcaster"] = {"type": "token", "secret": s2b_secret}
 
-            incoming_auth = IncomingTokenAuth(
-                subscriber_token=s2b_secret, broadcaster_token=b2s_secret
-            )
+            to_broadcaster_auth = ToBroadcasterTokenAuth(token=s2b_secret)
         elif s2b_auth_strategy == "none":
-            incoming_auth = IncomingNoneAuth()
+            to_broadcaster_auth = ToBroadcasterNoneAuth()
         else:
             assert_never(s2b_auth_strategy)
 
-        outgoing_auth: OutgoingAuthConfig
+        to_subscriber_auth: ToSubscriberAuthConfig
         if b2s_auth_strategy == "hmac":
-            subscriber_secrets["incoming"] = {"type": "hmac", "secret": b2s_secret}
+            serd_secrets["to-subscriber"] = {"type": "hmac", "secret": b2s_secret}
 
-            outgoing_auth = OutgoingHmacAuth(secret=b2s_secret)
+            if hmac_db is None:
+                hmac_db = IncomingHmacAuthSqliteDBConfig(":memory:")
+
+            to_subscriber_auth = ToSubscriberHmacAuth(
+                secret=b2s_secret, db_config=hmac_db
+            )
         elif b2s_auth_strategy == "token":
-            subscriber_secrets["incoming"] = {"type": "token", "secret": b2s_secret}
+            serd_secrets["incoming"] = {"type": "token", "secret": b2s_secret}
 
-            outgoing_auth = OutgoingTokenAuth(token=b2s_secret)
+            to_subscriber_auth = ToSubscriberTokenAuth(token=b2s_secret)
         elif b2s_auth_strategy == "none":
-            outgoing_auth = OutgoingNoneAuth()
+            to_subscriber_auth = ToSubscriberNoneAuth()
         else:
             assert_never(b2s_auth_strategy)
 
         with open(os.path.join(working_folder, "subscriber-secrets.json"), "w") as f:
-            json.dump(subscriber_secrets, f)
+            json.dump(serd_secrets, f)
 
         config = ConfigFromParts(
-            auth=AuthConfigFromParts(incoming=incoming_auth, outgoing=outgoing_auth),
+            auth=AuthConfigFromParts(
+                to_broadcaster=to_broadcaster_auth, to_subscriber=to_subscriber_auth
+            ),
             db=db,
             generic=GenericConfigFromValues(
                 message_body_spool_size=1024 * 1024 * 10,
