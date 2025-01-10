@@ -1,8 +1,7 @@
-import time
+from lonelypsc.http_client import HttpPubSubClient
 
 from lonelypst.util.config_gen import ConfigGen
 from lonelypst.util.timing import timing
-from lonelypsc.http_client import HttpPubSubClient
 
 
 async def test_http_open_close(cgen: ConfigGen) -> None:

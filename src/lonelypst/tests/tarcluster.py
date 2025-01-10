@@ -3,8 +3,7 @@ run tests against
 """
 
 import asyncio
-import time
-from typing import Iterable, List
+from typing import List
 
 from lonelypst.tests.simple.test_http_notify_0 import test_http_notify_0
 from lonelypst.tests.simple.test_http_open_close import test_http_open_close
@@ -13,8 +12,6 @@ from lonelypst.tests.simple.test_notify_1 import test_notify_1
 from lonelypst.tests.simple.test_notify_many import test_notify_many
 from lonelypst.tests.simple.test_ws_notify_0 import test_ws_notify_0
 from lonelypst.util.config_gen import ConfigGen
-
-
 from lonelypst.util.timing import timing
 
 
