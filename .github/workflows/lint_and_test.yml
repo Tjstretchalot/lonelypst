@@ -3,7 +3,7 @@ name: CI
 on: [push]
 
 jobs:
-  lint:
+  lint_and_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
