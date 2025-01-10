@@ -66,46 +66,34 @@ async def _main() -> None:
     parser.add_argument(
         "--db",
         action="append",
-        default=["all"],
-        choices=["sqlite", "all"],
-        help="Database to use",
+        choices=["sqlite"],
+        help="Database to use, unset for all",
     )
     parser.add_argument(
         "--s2b-auth",
         action="append",
-        default=["all"],
-        choices=["hmac", "token", "none", "all"],
-        help="Authentication for subscriber->broadcaster messages",
+        choices=["hmac", "token", "none"],
+        help="Authentication for subscriber->broadcaster messages, unset for all",
     )
     parser.add_argument(
         "--b2s-auth",
-        default=["all"],
-        choices=["hmac", "token", "none", "all"],
-        help="Authentication for broadcaster->subscriber messages",
+        action="append",
+        choices=["hmac", "token", "none"],
+        help="Authentication for broadcaster->subscriber messages, unset for all",
     )
     args = parser.parse_args()
 
-    db_raw: List[Literal["sqlite", "all"]] = args.db
-    db: List[Literal["sqlite"]] = (
-        ["sqlite"] if "all" in db_raw else cast(List[Literal["sqlite"]], db_raw)
-    )
-    assert db, "At least one database must be selected"
+    db: List[Literal["sqlite"]] = args.db
+    if not db:
+        db = ["sqlite"]
 
-    s2b_auth_raw: List[Literal["hmac", "token", "none", "all"]] = args.s2b_auth
-    s2b_auth: List[Literal["hmac", "token", "none"]] = (
-        ["hmac", "token", "none"]
-        if "all" in s2b_auth_raw
-        else cast(List[Literal["hmac", "token", "none"]], s2b_auth_raw)
-    )
-    assert s2b_auth, "At least one subscriber->broadcaster auth method must be selected"
+    s2b_auth: List[Literal["hmac", "token", "none"]] = args.s2b_auth
+    if not s2b_auth:
+        s2b_auth = ["hmac", "token", "none"]
 
-    b2s_auth_raw: List[Literal["hmac", "token", "none", "all"]] = args.b2s_auth
-    b2s_auth: List[Literal["hmac", "token", "none"]] = (
-        ["hmac", "token", "none"]
-        if "all" in b2s_auth_raw
-        else cast(List[Literal["hmac", "token", "none"]], b2s_auth_raw)
-    )
-    assert b2s_auth, "At least one broadcaster->subscriber auth method must be selected"
+    b2s_auth: List[Literal["hmac", "token", "none"]] = args.b2s_auth
+    if not b2s_auth:
+        b2s_auth = ["hmac", "token", "none"]
 
     for db_item in db:
         for s2b_auth_item in s2b_auth:
