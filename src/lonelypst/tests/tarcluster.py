@@ -8,6 +8,7 @@ from typing import List
 from lonelypst.tests.simple.test_http_notify_0 import test_http_notify_0
 from lonelypst.tests.simple.test_http_reusable import test_http_reusable
 from lonelypst.tests.simple.test_notify_1 import test_notify_1
+from lonelypst.tests.simple.test_notify_many import test_notify_many
 from lonelypst.tests.simple.test_ws_notify_0 import test_ws_notify_0
 from lonelypst.util.config_gen import ConfigGen
 
@@ -25,6 +26,7 @@ async def main(ips: List[str], auth_file_path: str) -> None:
     await test_http_notify_0(cgen)
     await test_ws_notify_0(cgen)
     await test_notify_1(cgen)
+    await test_notify_many(cgen)
 
 
 if __name__ == "__main__":

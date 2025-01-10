@@ -13,7 +13,7 @@ h11==0.14.0
 httptools==0.6.4
 idna==3.10
 lonelypsc==0.0.5
-lonelypsp==0.0.24
+lonelypsp==0.0.25
 lonelypss==0.0.3
 multidict==6.1.0
 mypy==1.14.1

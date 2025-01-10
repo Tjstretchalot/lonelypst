@@ -10,7 +10,7 @@ import secrets
 import shutil
 import sys
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, List, Literal, Optional, cast
+from typing import Any, AsyncIterator, Dict, List, Literal, Optional
 
 import uvicorn
 from fastapi import FastAPI
