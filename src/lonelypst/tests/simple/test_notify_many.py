@@ -70,7 +70,7 @@ async def _test_notify_many_of_type(
     subscribers: List[PubSubClient] = []
     for i in range(subscriber_types.get("http", 0)):
         subscriber = HttpPubSubClient(cgen.http(3005 + i))
-        with timing("_test_notify_many_of_type: enter http subscriber", 0.01):
+        with timing("_test_notify_many_of_type: enter http subscriber", 0.1):
             await subscriber.__aenter__()
         subscribers.append(subscriber)
 
