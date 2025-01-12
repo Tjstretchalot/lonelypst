@@ -8,6 +8,8 @@ from lonelypsc.config.ws_config import (
 )
 from lonelypsp.auth.config import AuthConfig, AuthConfigFromParts
 
+from lonelypst.util.constants import WEBSOCKET_MAX_COMPAT_SIZE
+
 
 class ConfigGen:
     """Generates the configuration settings for the client to connect to a
@@ -51,7 +53,7 @@ class ConfigGen:
             ],
             outgoing_initial_connect_retries=2,
             outgoing_min_reconnect_interval=1,
-            max_websocket_message_size=1024 * 128,
+            max_websocket_message_size=WEBSOCKET_MAX_COMPAT_SIZE,
             websocket_open_timeout=5,
             websocket_close_timeout=5,
             websocket_heartbeat_interval=10,

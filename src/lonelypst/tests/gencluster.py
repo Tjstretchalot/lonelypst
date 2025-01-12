@@ -50,6 +50,7 @@ from lonelypss.router import router as HttpPubSubRouter
 from lonelypss.util.ws_receiver import SimpleFanoutWSReceiver
 
 import lonelypst.tests.tarcluster
+from lonelypst.util.constants import WEBSOCKET_MAX_COMPAT_SIZE
 
 if sys.version_info < (3, 11):
     from typing import NoReturn
@@ -62,6 +63,7 @@ else:
 
 
 async def _main() -> None:
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--db",
@@ -203,7 +205,7 @@ async def main(
             compression=CompressionConfigFromParts(
                 compression_allowed=True,
                 compression_dictionary_by_id=dict(),
-                outgoing_max_ws_message_size=16 * 1024 * 1024,
+                outgoing_max_ws_message_size=WEBSOCKET_MAX_COMPAT_SIZE,
                 allow_training=True,
                 compression_min_size=32,
                 compression_trained_max_size=16 * 1024,
@@ -213,6 +215,7 @@ async def main(
                 decompression_max_window_size=8 * 1024 * 1024,
             ),
         )
+        config.message_body_spool_size
         fanout = SimpleFanoutWSReceiver(
             receiver_url="http://127.0.0.1:3003/v1/receive_for_websockets",
             recovery="http://127.0.0.1:3003/v1/missed_for_websockets",

@@ -9,6 +9,7 @@ from lonelypst.tests.simple.test_http_notify_0 import test_http_notify_0
 from lonelypst.tests.simple.test_http_open_close import test_http_open_close
 from lonelypst.tests.simple.test_http_reusable import test_http_reusable
 from lonelypst.tests.simple.test_notify_1 import test_notify_1
+from lonelypst.tests.simple.test_notify_large import test_notify_large
 from lonelypst.tests.simple.test_notify_many import test_notify_many
 from lonelypst.tests.simple.test_ws_notify_0 import test_ws_notify_0
 from lonelypst.util.config_gen import ConfigGen
@@ -33,10 +34,12 @@ async def main(ips: List[str], auth_file_path: str) -> None:
         await test_http_notify_0(cgen)
     with timing("test_ws_notify_0", 0.5):
         await test_ws_notify_0(cgen)
-    with timing("test_notify_1", 1):
+    with timing("test_notify_1", 2):
         await test_notify_1(cgen)
     with timing("test_notify_many", 24):
         await test_notify_many(cgen)
+    with timing("test_notify_large", 32):
+        await test_notify_large(cgen)
 
 
 if __name__ == "__main__":

@@ -12,9 +12,9 @@ frozenlist==1.5.0
 h11==0.14.0
 httptools==0.6.4
 idna==3.10
-lonelypsc==0.0.7
-lonelypsp==0.0.25
-lonelypss==0.0.4
+lonelypsc==0.0.8
+lonelypsp==0.0.26
+lonelypss==0.0.6
 multidict==6.1.0
 mypy==1.14.1
 mypy-extensions==1.0.0
