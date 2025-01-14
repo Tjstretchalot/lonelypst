@@ -41,6 +41,7 @@ from lonelypss.config.config import (
     DBConfig,
     GenericConfigFromValues,
     MissedRetryStandard,
+    NotifySessionStandard,
 )
 from lonelypss.config.helpers.sqlite_db_config import SqliteDBConfig
 from lonelypss.config.lifespan import setup_config, teardown_config
@@ -214,6 +215,7 @@ async def main(
                 compression_retrain_interval_seconds=60 * 60 * 60,
                 decompression_max_window_size=8 * 1024 * 1024,
             ),
+            notify_session=NotifySessionStandard(),
         )
         config.message_body_spool_size
         fanout = SimpleFanoutWSReceiver(
@@ -242,6 +244,8 @@ async def main(
         print("Starting broadcaster...")
         uvicorn_task = asyncio.create_task(server.serve())
         try:
+            # print("waiting 1m seconds for debugging")
+            # await asyncio.sleep(1_000_000)
             print("Running tests...")
             await lonelypst.tests.tarcluster.main(
                 ips=["127.0.0.1:3003"],
@@ -259,4 +263,4 @@ async def main(
 
 
 if __name__ == "__main__":
-    asyncio.run(_main(), debug=True)
+    asyncio.run(_main(), debug=False)

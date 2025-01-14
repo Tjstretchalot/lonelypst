@@ -11,6 +11,9 @@ from lonelypst.tests.simple.test_http_reusable import test_http_reusable
 from lonelypst.tests.simple.test_notify_1 import test_notify_1
 from lonelypst.tests.simple.test_notify_large import test_notify_large
 from lonelypst.tests.simple.test_notify_many import test_notify_many
+from lonelypst.tests.simple.test_notify_trained_compression import (
+    test_notify_trained_compression,
+)
 from lonelypst.tests.simple.test_ws_notify_0 import test_ws_notify_0
 from lonelypst.util.config_gen import ConfigGen
 from lonelypst.util.timing import timing
@@ -30,6 +33,8 @@ async def main(ips: List[str], auth_file_path: str) -> None:
     with timing("test_http_open_close", 0.02):
         await test_http_open_close(cgen)
 
+    with timing("test_notify_trained_compression", 240):
+        await test_notify_trained_compression(cgen)
     with timing("test_http_notify_0", 0.5):
         await test_http_notify_0(cgen)
     with timing("test_ws_notify_0", 0.5):
