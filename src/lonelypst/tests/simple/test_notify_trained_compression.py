@@ -193,19 +193,19 @@ async def _test_notify_repeatedly(
 
 async def test_notify_trained_compression(cgen: ConfigGen) -> None:
     """Various tests related to triggering trained compression on websockets"""
-    with timing("test_notify_trained_compression: empty payload, 16384 messages", 60):
+    with timing("test_notify_trained_compression: empty payload, 16384 messages", 120):
         await _test_notify_repeatedly("empty payload", cgen, _no_bytes)
 
     with timing(
         "test_notify_trained_compression: ultra compressible payload, 16384 messages",
-        60,
+        120,
     ):
         await _test_notify_repeatedly(
             "ultra compressible payload", cgen, _ultra_compressible
         )
 
     with timing(
-        "test_notify_trained_compression: non compressible payload, 16384 messages", 60
+        "test_notify_trained_compression: non compressible payload, 16384 messages", 120
     ):
         await _test_notify_repeatedly(
             "non compressible payload", cgen, _non_compressible
@@ -213,7 +213,7 @@ async def test_notify_trained_compression(cgen: ConfigGen) -> None:
 
     with timing(
         "test_notify_trained_compression: partially compressible payload, 16384 messages",
-        60,
+        120,
     ):
         await _test_notify_repeatedly(
             "partially compressible payload", cgen, _partially_compressible

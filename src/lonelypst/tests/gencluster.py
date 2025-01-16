@@ -12,6 +12,8 @@ import sys
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional
 
+import aiohttp
+import aiohttp.abc
 import uvicorn
 from fastapi import FastAPI
 from lonelypsp.auth.config import (
@@ -61,6 +63,21 @@ if sys.version_info < (3, 11):
 
 else:
     from typing import assert_never
+
+
+async def monkey_patch_IOBasePayload_write(
+    self: aiohttp.payload.IOBasePayload, writer: aiohttp.abc.AbstractStreamWriter
+) -> None:
+    try:
+        chunk = self._value.read(2**16)
+        while chunk:
+            await writer.write(chunk)
+            chunk = self._value.read(2**16)
+    finally:
+        self._value.close()
+
+
+aiohttp.payload.IOBasePayload.write = monkey_patch_IOBasePayload_write  # type: ignore
 
 
 async def _main() -> None:

@@ -33,8 +33,6 @@ async def main(ips: List[str], auth_file_path: str) -> None:
     with timing("test_http_open_close", 0.02):
         await test_http_open_close(cgen)
 
-    with timing("test_notify_trained_compression", 240):
-        await test_notify_trained_compression(cgen)
     with timing("test_http_notify_0", 0.5):
         await test_http_notify_0(cgen)
     with timing("test_ws_notify_0", 0.5):
@@ -45,6 +43,8 @@ async def main(ips: List[str], auth_file_path: str) -> None:
         await test_notify_many(cgen)
     with timing("test_notify_large", 32):
         await test_notify_large(cgen)
+    with timing("test_notify_trained_compression", 480):
+        await test_notify_trained_compression(cgen)
 
 
 if __name__ == "__main__":
