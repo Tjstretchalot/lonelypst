@@ -44,6 +44,7 @@ from lonelypss.config.config import (
     GenericConfigFromValues,
     MissedRetryStandard,
     NotifySessionStandard,
+    TracingConfigSimple,
 )
 from lonelypss.config.helpers.sqlite_db_config import SqliteDBConfig
 from lonelypss.config.lifespan import setup_config, teardown_config
@@ -220,6 +221,7 @@ async def main(
                 constant=1,
                 jitter=2,
             ),
+            tracing=TracingConfigSimple(),
             compression=CompressionConfigFromParts(
                 compression_allowed=True,
                 compression_dictionary_by_id=dict(),

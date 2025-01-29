@@ -8,7 +8,7 @@ import multiprocessing
 import multiprocessing.synchronize
 import secrets
 import time
-from typing import Callable, Iterator, List
+from typing import Callable, Iterator, List, AsyncContextManager
 
 from lonelypsc.ws_client import WebsocketPubSubClient
 
@@ -87,28 +87,34 @@ def timing_per_iteration(name: str, num_items: int, batch_size: int) -> Iterator
 
 
 async def _async_notifier_task(
-    name: str, cgen: ConfigGen, topic: bytes, to_send: List[bytes]
+    name: str,
+    raw_cgen: AsyncContextManager[ConfigGen],
+    topic: bytes,
+    to_send: List[bytes],
 ) -> None:
-    async with WebsocketPubSubClient(cgen.websocket()) as notifier:
+    async with raw_cgen as cgen, WebsocketPubSubClient(cgen.websocket()) as notifier:
         timing_iter = timing_per_iteration(name, len(to_send), 4096)
         for data in to_send:
-            await notifier.notify(topic=topic, data=data)
+            await notifier.notify(trace_initializer=None, topic=topic, data=data)
             next(timing_iter)
 
 
 def _notifier_process_target(
-    name: str, cgen: ConfigGen, topic: bytes, to_send: List[bytes]
+    name: str,
+    raw_cgen: AsyncContextManager[ConfigGen],
+    topic: bytes,
+    to_send: List[bytes],
 ) -> None:
-    asyncio.run(_async_notifier_task(name, cgen, topic, to_send))
+    asyncio.run(_async_notifier_task(name, raw_cgen, topic, to_send))
 
 
 async def _async_subscriber_task(
-    cgen: ConfigGen,
+    raw_cgen: AsyncContextManager[ConfigGen],
     topic: bytes,
     to_receive: List[bytes],
     on_ready: multiprocessing.synchronize.Event,
 ) -> None:
-    async with WebsocketPubSubClient(cgen.websocket()) as subscriber:
+    async with raw_cgen as cgen, WebsocketPubSubClient(cgen.websocket()) as subscriber:
         ready = asyncio.Event()
 
         async def on_receiving() -> None:
@@ -131,17 +137,17 @@ async def _async_subscriber_task(
 
 
 def _subscriber_process_target(
-    cgen: ConfigGen,
+    raw_cgen: AsyncContextManager[ConfigGen],
     topic: bytes,
     to_receive: List[bytes],
     on_ready: multiprocessing.synchronize.Event,
 ) -> None:
-    asyncio.run(_async_subscriber_task(cgen, topic, to_receive, on_ready))
+    asyncio.run(_async_subscriber_task(raw_cgen, topic, to_receive, on_ready))
 
 
 async def _test_notify_repeatedly(
     name: str,
-    cgen: ConfigGen,
+    cgen: AsyncContextManager[ConfigGen],  # UNENTERED
     sampler: Callable[[], bytes],
     num_messages: int = 1024 * 16,
 ) -> None:
@@ -191,8 +197,10 @@ async def _test_notify_repeatedly(
         raise
 
 
-async def test_notify_trained_compression(cgen: ConfigGen) -> None:
-    """Various tests related to triggering trained compression on websockets"""
+async def test_notify_trained_compression(cgen: AsyncContextManager[ConfigGen]) -> None:
+    """Various tests related to triggering trained compression on websockets. Because this
+    uses multiple processes, config gen must be unentered (so it can be pickled)
+    """
     with timing("test_notify_trained_compression: empty payload, 16384 messages", 120):
         await _test_notify_repeatedly("empty payload", cgen, _no_bytes)
 
