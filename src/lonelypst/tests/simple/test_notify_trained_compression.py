@@ -8,7 +8,7 @@ import multiprocessing
 import multiprocessing.synchronize
 import secrets
 import time
-from typing import Callable, Iterator, List, AsyncContextManager
+from typing import AsyncContextManager, Callable, Iterator, List
 
 from lonelypsc.ws_client import WebsocketPubSubClient
 

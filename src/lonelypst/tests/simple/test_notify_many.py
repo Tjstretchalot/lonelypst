@@ -4,7 +4,7 @@ websocket/http subscriber
 
 import asyncio
 import secrets
-from typing import Dict, List, Literal
+from typing import Any, Dict, List, Literal
 
 from lonelypsc.client import PubSubClient, PubSubClientMessage, PubSubClientSubscription
 from lonelypsc.http_client import HttpPubSubClient
@@ -62,7 +62,7 @@ async def _test_notify_many_of_type(
 
     subscribers: List[PubSubClient] = []
     for i in range(subscriber_types.get("http", 0)):
-        subscriber = HttpPubSubClient(cgen.http(3005 + i))
+        subscriber: PubSubClient[None, Any] = HttpPubSubClient(cgen.http(3005 + i))
         await subscriber.__aenter__()
         subscribers.append(subscriber)
 

@@ -5,6 +5,8 @@ run tests against
 import asyncio
 from typing import List
 
+from lonelypst.tests.simple.test_bad_host_notify import test_bad_host_notify
+from lonelypst.tests.simple.test_bad_host_subscribe import test_bad_host_subscribe
 from lonelypst.tests.simple.test_http_notify_0 import test_http_notify_0
 from lonelypst.tests.simple.test_http_open_close import test_http_open_close
 from lonelypst.tests.simple.test_http_reusable import test_http_reusable
@@ -28,12 +30,19 @@ async def main(ips: List[str], auth_file_path: str) -> None:
     print(f"Running tests against {ips=}")
 
     async with ConfigGen(ips, auth_file_path) as cgen:
+
         with timing(
             "test_http_reusable", 1
         ):  # will use more strict timing on next part
             await test_http_reusable(cgen)
         with timing("test_http_open_close", 0.02):
             await test_http_open_close(cgen)
+
+        with timing("test_bad_host_subscribe", 80):
+            await test_bad_host_subscribe(cgen)
+
+        with timing("test_bad_host_notify", 20):
+            await test_bad_host_notify(cgen)
 
         with timing("test_http_notify_0", 50.5):
             await test_http_notify_0(cgen)

@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import List, Type
+from typing import List, Optional, Type
 
 from lonelypsc.config.file_config import get_auth_config_from_file
 from lonelypsc.config.http_config import HttpPubSubConfig, make_http_pub_sub_config
@@ -41,9 +41,9 @@ class ConfigGen:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException],
-        exc_value: BaseException,
-        traceback: TracebackType,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
     ) -> None:
         await self.tracing_db.__aexit__(exc_type, exc_value, traceback)
 
@@ -53,18 +53,23 @@ class ConfigGen:
             to_subscriber=to_subscriber, to_broadcaster=to_broadcaster
         )
 
-    def http(self, port: int) -> HttpPubSubConfig[None]:
+    def http(
+        self, port: int, override_ips: Optional[List[str]] = None
+    ) -> HttpPubSubConfig[None]:
         """Generates the configuration to connect over http"""
         return make_http_pub_sub_config(
             bind={"type": "uvicorn", "host": "0.0.0.0", "port": port},
             host=f"http://127.0.0.1:{port}",
-            broadcasters=[{"host": f"http://{ip}"} for ip in self.ips],
+            broadcasters=[
+                {"host": f"http://{ip}"}
+                for ip in (override_ips if override_ips is not None else self.ips)
+            ],
             outgoing_retries_per_broadcaster=2,
             message_body_spool_size=1024 * 1024 * 10,
             outgoing_http_timeout_total=30,
             outgoing_http_timeout_connect=None,
             outgoing_http_timeout_sock_read=None,
-            outgoing_http_timeout_sock_connect=5,
+            outgoing_http_timeout_sock_connect=1,
             outgoing_retry_ambiguous=True,
             auth=self.auth(),
             tracing=SimpleTracingSubscriberRoot(
